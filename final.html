@@ -1,0 +1,200 @@
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+  <title>Equivalency form</title>
+  <a href="https://sites.google.com/a/dataflowgroup.com/home-page/home" target="_blank">
+    <img src="images\Dataflow.png"  style="width:200px;height:70px">
+  </a>
+</head>
+  
+  <body>
+    <h1 class = 'heading'>Residency</h1>
+  <br>
+    <div style="display: flex;">
+      <div class = 'labels' style = 'margin-left: 50px'>
+        <label for="mode_of_study">Mode of Study:</label>
+        <select id="mode_of_study" class = 'dropdown'>
+          <option value="Online">Online</option>
+          <option value="Offline">Offline</option>
+        </select>
+      </div>
+      <div class = 'labels'>
+        <label for="sub_category">Sub-Category:</label>
+        <select id="sub_category" class = 'dropdown'>
+          <option value="First">First</option>
+          <option value="Second">Second</option>
+          <option value="Third">Third</option>
+        </select>
+      </div>
+      <div class = 'labels'>
+        <label for="country_of_study">Country of Study:</label>
+        <input class = 'dropdown' id="country_of_study">
+      </div>
+    </div>
+
+    
+    <script>
+      const classSelect = document.getElementById("mode_of_study");
+      const subjectSelect = document.getElementById("sub_category");
+    
+      classSelect.addEventListener("change", () => {
+        if (classSelect.value === "Online") {
+          subjectSelect.innerHTML = '<option value="Second">Second</option>';
+        } else if (classSelect.value === "Offline") {
+          subjectSelect.innerHTML = '<option value="First">First</option><option value="Third">Third</option>';
+        }
+      });
+    </script>
+
+
+<table id="myTable" class = 'table' style="font-size: 18px" cellspacing = '40'>
+  <tr>
+    <th>Tenure</th>
+    <th>Country</th>
+    <th>Start Date</th>
+    <th>End Date</th>
+    <th>No. of Days</th>
+  </tr>
+  <tr>
+    <td>
+      <select id="Tenure" class = 'dropdown'>
+        <option value="Years">Years</option>
+        <option value="Months">Months</option>
+        <option value="Days">Days</option>
+      </select>
+    </td>
+    <td><input type="text" id="country1"  class = 'dropdown' ></td>
+    <td><input type="date" id="startDate1" class = 'dropdown'></td>
+    <td><input type="date" id="endDate1"  class = 'dropdown'></td>
+    <td><input type="text" id="numDays1"  class = 'dropdown'></td>
+  </tr>
+</table>
+<br>
+  <div><button onclick="addRow()" class = 'btn'>Add Row</button></div>
+  <div><button id="savePdfBtn" class = 'pdfBtn'>Save as PDF</button></div>
+
+<script>
+  let count = 1;
+
+  const startInput1 = document.getElementById("startDate1");
+  const endInput1 = document.getElementById("endDate1");
+  const numDaysInput1 = document.getElementById("numDays1");
+  
+  startInput1.addEventListener("change", function() {
+    calculateDays(startInput1, endInput1, numDaysInput1);
+  });
+  
+  endInput1.addEventListener("change", function() {
+    calculateDays(startInput1, endInput1, numDaysInput1);
+  });
+
+  function addRow() {
+    count++;
+    const table = document.getElementById("myTable");
+    const row = table.insertRow(-1);
+    const tenureCell = row.insertCell(0);
+    const countryCell = row.insertCell(1);
+    const startCell = row.insertCell(2);
+    const endCell = row.insertCell(3);
+    const numDaysCell = row.insertCell(4);
+    tenureCell.innerHTML = '<select id="Tenure" class = "dropdown">' +
+      '<option value="Years">Years</option>' +
+      '<option value="Months">Months</option>' +
+      '<option value="Days">Days</option>' +
+      '</select>';
+    countryCell.innerHTML = `<input type="text" id="country${count}" class = "dropdown">`;
+    startCell.innerHTML = `<input type="date" id="startDate${count}" class = "dropdown">`;
+    endCell.innerHTML = `<input type="date" id="endDate${count}"class = "dropdown">`;
+    numDaysCell.innerHTML = `<input type="text" id="numDays${count}"class = "dropdown" readonly>`;
+
+    const startInput = document.getElementById(`startDate${count}`);
+    const endInput = document.getElementById(`endDate${count}`);
+    const numDaysInput = document.getElementById(`numDays${count}`);
+
+    startInput.addEventListener("change", function() {
+      calculateDays(startInput, endInput, numDaysInput);
+    });
+
+    endInput.addEventListener("change", function() {
+      calculateDays(startInput, endInput, numDaysInput);
+    });
+  }
+
+  function calculateDays(startInput, endInput, numDaysInput) {
+    const startDate = new Date(startInput.value);
+    const endDate = new Date(endInput.value);
+  
+    // Calculate the total number of days between the start and end dates
+    const totalDays = Math.ceil(Math.abs((endDate.getTime()+86400000) - startDate.getTime()) / (1000 * 3600 * 24));
+  
+    // Calculate the number of weekend days (Saturdays and Sundays) between the start and end dates
+    let weekendDays = 0;
+    for (let i = 0; i < totalDays; i++) {
+      const date = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
+      if (date.getDay() === 6 || date.getDay() === 0) {
+        weekendDays++;
+      }
+    }
+  
+    // Subtract the number of weekend days from the total number of days
+    const businessDays = totalDays - weekendDays;
+  
+    // Set the value of the numDaysInput to the number of business days
+    numDaysInput.value = businessDays;
+  }
+  
+
+  document.getElementById("savePdfBtn").addEventListener("click", function() {
+
+    function calculateNoOfDays(startDate, endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      let businessDays = 0;
+      while (start <= end) {
+        const dayOfWeek = start.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          businessDays++;
+        }
+        start.setDate(start.getDate() + 1);
+      }
+      return businessDays;
+    }
+
+    const pdf = new jsPDF();
+    const mode_of_study = document.getElementById("mode_of_study").value;
+    const sub_category = document.getElementById("sub_category").value;
+    const country_of_study = document.getElementById("country_of_study").value;
+
+  
+    const table = document.getElementById("myTable");
+    let content = "\n\n";
+    let totalDays = 0;
+    for (let i = 1; i < table.rows.length; i++) {
+      const tenure = table.rows[i].cells[0].firstChild.value;
+      const country = table.rows[i].cells[1].firstChild.value;
+      const startDate = table.rows[i].cells[2].firstChild.value;
+      const endDate = table.rows[i].cells[3].firstChild.value;
+      const noOfDays = calculateNoOfDays(startDate, endDate);
+      totalDays += noOfDays;
+      content += "Tenure - "+"  "+tenure + "      " +"Country"+"    "+ country + "      " +"No. of Days"+"    "+ noOfDays + "\n\n\n";
+    };
+    content += "\nTotal Number of Days: " + totalDays;
+
+
+
+    pdf.setFontSize(22);
+    pdf.text(80,15, "Residency");
+    pdf.setFontSize(16);
+    pdf.text(20, 30, "Mode of study");
+    pdf.text(20, 40, mode_of_study);
+    pdf.text(80, 30, "Sub Category");
+    pdf.text(80, 40, sub_category);
+    pdf.text(140, 30, "Country of study");
+    pdf.text(140, 40, country_of_study);
+    pdf.text(content, 20, 60);
+    pdf.save("table.pdf");
+
+  });
+</script>
+  
+   
